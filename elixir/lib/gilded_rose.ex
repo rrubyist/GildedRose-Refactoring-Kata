@@ -1,44 +1,45 @@
 defmodule GildedRose do
-  # Example
-  # update_quality([%Item{name: "Backstage passes to a TAFKAL80ETC concert", sell_in: 9, quality: 1}])
-  # => [%Item{name: "Backstage passes to a TAFKAL80ETC concert", sell_in: 8, quality: 3}]
+  @doc """
+      Update GildedRose collection
 
+      ## Examples
+
+        iex> GildedRose.update_quality([%Item{name: "Backstage passes to a TAFKAL80ETC concert", sell_in: 9, quality: 1}])
+        [%Item{name: "Backstage passes to a TAFKAL80ETC concert", sell_in: 8, quality: 3}]
+  """
   def update_quality(items) do
     Enum.map(items, &update_item/1)
   end
 
+  defp increase_quality(%Item{} = item) do
+    %{item | quality: item.quality + 1}
+  end
+
+  defp decrease_quality(%Item{} = item) do
+    %{item | quality: item.quality - 1}
+  end
+
+  @spec update_item(atom | %{:name => String.t(), :quality => integer(), optional(any) => any}) ::
+          atom | %{:name => String.t(), :quality => integer(), :sell_in => integer(), optional(any) => any}
   def update_item(item) do
     item = cond do
       item.name != "Aged Brie" && item.name != "Backstage passes to a TAFKAL80ETC concert" ->
-        if item.quality > 0 do
-          if item.name != "Sulfuras, Hand of Ragnaros" do
-            %{item | quality: item.quality - 1}
-          else
-            item
-          end
+        if item.name != "Sulfuras, Hand of Ragnaros" && item.quality > 0 do
+          decrease_quality(item)
         else
           item
         end
       true ->
         cond do
           item.quality < 50 ->
-            item = %{item | quality: item.quality + 1}
+            item = increase_quality(item)
             cond do
               item.name == "Backstage passes to a TAFKAL80ETC concert" ->
-                item = cond do
+                cond do
                   item.sell_in < 11 ->
                     cond do
                       item.quality < 50 ->
-                        %{item | quality: item.quality + 1}
-                      true -> item
-                    end
-                  true -> item
-                end
-                cond do
-                  item.sell_in < 6 ->
-                    cond do
-                      item.quality < 50 ->
-                        %{item | quality: item.quality + 1}
+                        increase_quality(item)
                       true -> item
                     end
                   true -> item
@@ -63,7 +64,7 @@ defmodule GildedRose do
                   item.quality > 0 ->
                     cond do
                       item.name != "Sulfuras, Hand of Ragnaros" ->
-                        %{item | quality: item.quality - 1}
+                        decrease_quality(item)
                       true -> item
                     end
                   true -> item
@@ -73,7 +74,7 @@ defmodule GildedRose do
           true ->
             cond do
               item.quality < 50 ->
-                %{item | quality: item.quality + 1}
+                increase_quality(item)
               true -> item
             end
         end
