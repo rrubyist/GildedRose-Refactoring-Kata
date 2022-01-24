@@ -13,15 +13,27 @@ defmodule GildedRose do
   end
 
   defp increase_quality(%Item{} = item) do
-    %{item | quality: item.quality + 1}
+    if item.quality < 50 do
+      %{item | quality: item.quality + 1}
+    else
+      item
+    end
   end
 
   defp decrease_quality(%Item{} = item) do
-    decrease_attribute(item, :quality)
+    if item.quality > 0 do
+      decrease_attribute(item, :quality)
+    else
+      item
+    end
   end
 
   defp decrease_attribute(%Item{} = item, attribute) do
-    %{item | attribute => Map.get(item, attribute) - 1}
+    if item.name == "Sulfuras, Hand of Ragnaros" do
+      item
+    else
+      %{item | attribute => Map.get(item, attribute) - 1}
+    end
   end
 
   @spec update_item(atom | %{:name => String.t(), :quality => integer(), optional(any) => any}) ::
@@ -29,40 +41,26 @@ defmodule GildedRose do
   def update_item(item) do
     item = cond do
       item.name != "Aged Brie" && item.name != "Backstage passes to a TAFKAL80ETC concert" ->
-        if item.name != "Sulfuras, Hand of Ragnaros" && item.quality > 0 do
-          decrease_quality(item)
-        else
-          item
-        end
+        decrease_quality(item)
       true ->
+        item = increase_quality(item)
         cond do
-          item.quality < 50 ->
-            item = increase_quality(item)
+          item.name == "Backstage passes to a TAFKAL80ETC concert" ->
             cond do
-              item.name == "Backstage passes to a TAFKAL80ETC concert" ->
-                cond do
-                  item.sell_in < 11 ->
-                    cond do
-                      item.quality < 50 ->
-                        increase_quality(item)
-                      true -> item
-                    end
-                  true -> item
-                end
+              item.sell_in < 11 ->
+                increase_quality(item)
               true -> item
             end
           true -> item
         end
     end
-    item = cond do
-      item.name != "Sulfuras, Hand of Ragnaros" ->
-        item |> decrease_attribute(:sell_in)
-      true -> item
-    end
+    item = item |> decrease_attribute(:sell_in)
     cond do
       item.sell_in < 0 ->
-        cond do
-          item.name != "Aged Brie" ->
+        case item.name do
+          "Aged Brie" ->
+            increase_quality(item)
+          _ ->
             cond do
               item.name != "Backstage passes to a TAFKAL80ETC concert" ->
                 cond do
@@ -74,13 +72,8 @@ defmodule GildedRose do
                     end
                   true -> item
                 end
-              true -> %{item | quality: item.quality - item.quality}
-            end
-          true ->
-            cond do
-              item.quality < 50 ->
-                increase_quality(item)
-              true -> item
+              true ->
+                %{item | quality: item.quality - item.quality}
             end
         end
       true -> item
