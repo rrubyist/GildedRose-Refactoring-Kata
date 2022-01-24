@@ -1,4 +1,5 @@
 defmodule GildedRose do
+  @spec update_quality(any) :: list
   @doc """
       Update GildedRose collection
 
@@ -16,7 +17,11 @@ defmodule GildedRose do
   end
 
   defp decrease_quality(%Item{} = item) do
-    %{item | quality: item.quality - 1}
+    decrease_attribute(item, :quality)
+  end
+
+  defp decrease_attribute(%Item{} = item, attribute) do
+    %{item | attribute => Map.get(item, attribute) - 1}
   end
 
   @spec update_item(atom | %{:name => String.t(), :quality => integer(), optional(any) => any}) ::
@@ -51,7 +56,7 @@ defmodule GildedRose do
     end
     item = cond do
       item.name != "Sulfuras, Hand of Ragnaros" ->
-        %{item | sell_in: item.sell_in - 1}
+        item |> decrease_attribute(:sell_in)
       true -> item
     end
     cond do

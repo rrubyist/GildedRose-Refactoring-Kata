@@ -12,6 +12,22 @@ defmodule GildedRoseTest do
   # end
 
   describe "when it has well recognized names" do
+    test "Aged Brie: sell_in 0, quality 0" do
+      items = [%Item{name: "Aged Brie", sell_in: 0, quality: 0}]
+      [item] = GildedRose.update_quality(items)
+
+      assert item.quality == 2
+      assert item.sell_in == -1
+    end
+
+    test "Aged Brie: sell_in 3, quality 3" do
+      items = [%Item{name: "Aged Brie", sell_in: 3, quality: 3}]
+      [item] = GildedRose.update_quality(items)
+
+      assert item.quality == 4
+      assert item.sell_in == 2
+    end
+
     test "the sell_in and the quality stays on its position" do
       items = [%Item{name: "Sulfuras, Hand of Ragnaros", sell_in: 0, quality: 0}]
       [item] = GildedRose.update_quality(items)
