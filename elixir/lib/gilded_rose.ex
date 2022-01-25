@@ -1,5 +1,4 @@
 defmodule GildedRose do
-  @spec update_quality(any) :: list
   @doc """
       Update GildedRose collection
 
@@ -29,42 +28,37 @@ defmodule GildedRose do
   end
 
   defp decrease_attribute(%Item{} = item, attribute) do
-    if item.name == "Sulfuras, Hand of Ragnaros" do
-      item
-    else
-      %{item | attribute => Map.get(item, attribute) - 1}
-    end
+    %{item | attribute => Map.get(item, attribute) - 1}
   end
 
-  @spec update_item(atom | %{:name => String.t(), :quality => integer(), optional(any) => any}) ::
-          atom | %{:name => String.t(), :quality => integer(), :sell_in => integer(), optional(any) => any}
-  def update_item(item) do
-    item = case item.name do
-      name when name in ["Aged Brie", "Backstage passes to a TAFKAL80ETC concert"] ->
-        item = increase_quality(item)
-        if item.name == "Backstage passes to a TAFKAL80ETC concert" do
-          item = if item.sell_in < 11, do: increase_quality(item), else: item
-          if item.sell_in < 6, do: increase_quality(item), else: item
-        else
-          item
-        end
-      _ -> decrease_quality(item)
-      end
-    item = item |> decrease_attribute(:sell_in)
-    cond do
-      item.sell_in < 0 ->
-        case item.name do
-          "Aged Brie" ->
-            increase_quality(item)
-          _ ->
-            cond do
-              item.name != "Backstage passes to a TAFKAL80ETC concert" ->
-                decrease_quality(item)
-              true ->
-                %{item | quality: item.quality - item.quality}
-            end
-        end
-      true -> item
-    end
+  defp update_item(%Item{name: "Backstage passes to a TAFKAL80ETC concert"} = item) do
+    item = increase_quality(item) |> decrease_attribute(:sell_in)
+
+    item = if item.sell_in < 11, do: increase_quality(item), else: item
+    item = if item.sell_in < 6, do: increase_quality(item), else: item
+
+    if item.sell_in < 0,
+      do: %{item | quality: item.quality - item.quality},
+      else: item
+  end
+
+  defp update_item(%Item{name: "Aged Brie"} = item) do
+    item = increase_quality(item) |> decrease_attribute(:sell_in)
+
+    if item.sell_in < 0,
+      do: increase_quality(item),
+      else: item
+  end
+
+  defp update_item(%Item{name: "Sulfuras, Hand of Ragnaros"} = item) do
+    item
+  end
+
+  defp update_item(%Item{} = item) do
+    item = decrease_quality(item) |> decrease_attribute(:sell_in)
+
+    if item.sell_in < 0,
+      do: decrease_quality(item),
+      else: item
   end
 end

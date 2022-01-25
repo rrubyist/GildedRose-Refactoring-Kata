@@ -3,7 +3,7 @@ defmodule GildedRoseTest do
   doctest(GildedRose)
 
   describe "Aged Brie" do
-    # "Aged Brie" actually increases in Quality by 2 if negative it gets
+    # "Aged Brie" actually increases in Quality by 2 if it gets negative
     test "sell_in: 0, quality: 0", context do
       items = [%Item{name: context.describe, sell_in: 0, quality: 0}]
       [item] = GildedRose.update_quality(items)
