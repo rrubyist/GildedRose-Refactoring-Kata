@@ -39,21 +39,17 @@ defmodule GildedRose do
   @spec update_item(atom | %{:name => String.t(), :quality => integer(), optional(any) => any}) ::
           atom | %{:name => String.t(), :quality => integer(), :sell_in => integer(), optional(any) => any}
   def update_item(item) do
-    item = cond do
-      item.name != "Aged Brie" && item.name != "Backstage passes to a TAFKAL80ETC concert" ->
-        decrease_quality(item)
-      true ->
+    item = case item.name do
+      name when name in ["Aged Brie", "Backstage passes to a TAFKAL80ETC concert"] ->
         item = increase_quality(item)
-        cond do
-          item.name == "Backstage passes to a TAFKAL80ETC concert" ->
-            cond do
-              item.sell_in < 11 ->
-                increase_quality(item)
-              true -> item
-            end
-          true -> item
+        if item.name == "Backstage passes to a TAFKAL80ETC concert" do
+          item = if item.sell_in < 11, do: increase_quality(item), else: item
+          if item.sell_in < 6, do: increase_quality(item), else: item
+        else
+          item
         end
-    end
+      _ -> decrease_quality(item)
+      end
     item = item |> decrease_attribute(:sell_in)
     cond do
       item.sell_in < 0 ->
@@ -63,15 +59,7 @@ defmodule GildedRose do
           _ ->
             cond do
               item.name != "Backstage passes to a TAFKAL80ETC concert" ->
-                cond do
-                  item.quality > 0 ->
-                    cond do
-                      item.name != "Sulfuras, Hand of Ragnaros" ->
-                        decrease_quality(item)
-                      true -> item
-                    end
-                  true -> item
-                end
+                decrease_quality(item)
               true ->
                 %{item | quality: item.quality - item.quality}
             end
